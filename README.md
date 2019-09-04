@@ -1,4 +1,4 @@
-IBM Spectrum Virtualize IP-Quorum 
+IBM Spectrum Virtualize IP-Quorum Ansible Role
 =========
 
 [![GitHub Issues](https://img.shields.io/github/issues/olemyk/ansible-ipquorum.svg)](https://github.com/olemyk/ansible-ipquorum/issues) [![GitHub Stars](https://img.shields.io/github/stars/olemyk/ansible-ipquorum.svg?label=github%20%E2%98%85)](https://github.com/olemyk/ansible-ipquorum/) [![Role Downloads](https://img.shields.io/ansible/role/d/29538.svg)](https://galaxy.ansible.com/olemyk/ansible-ipquorum) [![License](https://img.shields.io/github/license/olemyk/ansible-ipquorum.svg)](LICENSE)
