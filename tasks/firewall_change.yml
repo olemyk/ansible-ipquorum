@@ -1,0 +1,76 @@
+---
+#
+# Install prereq RPMs
+#
+- name: firewall change | Install prerequisite RPMs
+  yum:
+    name: yum-utils
+    state: present
+  when: ansible_pkg_mgr == 'yum'
+
+
+- name: firewall change | List installed firewall RPMs
+  yum:
+    list: firewalld
+  register: ipquorum_prepare_firewallrpm
+  when:
+    - ansible_pkg_mgr == 'yum'
+
+#
+# Register the status of firewalld Service
+#
+- name: firewall change | Check status of firewalld Service
+  service_facts:
+  register: firewalld_service_state
+
+#
+# Output the status of firewalld Service.
+#
+- name: finalize change | Check status of firewalld service - Output
+  debug:
+    var: firewalld_service_state.ansible_facts.services["firewalld.service"].status
+    #verbosity: 2
+  changed_when: false
+
+#
+# Output the status of firewalld Service.
+#
+- name: finalize change | Check state of firewalld service  - Output
+  debug:
+    var: firewalld_service_state.ansible_facts.services["firewalld.service"].state
+    #verbosity: 2
+  changed_when: false
+  when:
+    - "'installed' in ipquorum_prepare_firewallrpm.results | map(attribute='yumstate') | list"
+
+#
+# Output the status of IP-Quorum Service.
+#
+
+- name:  firewall change | Configure Port Opening for Port IP-Quorum
+  firewalld:
+    port: "{{ ipquorum_firewall_config.port | default('1260/tcp') }}"
+    permanent: "{{ ipquorum_firewall_config.permanent | default('yes') }}"
+    state: "{{ ipquorum_firewall_config.state | default('enabled') }}"
+    offline: "{{ ipquorum_firewall_config.offline | default('yes') }}"
+    zone: "{{ ipquorum_firewall_config.zone | default(omit) }}"
+    immediate: "{{ ipquorum_firewall_config.immediate | default('yes') }}"
+    interface: "{{ ipquorum_firewall_config.interface | default(omit) }}"
+  when:
+    - firewalld_service_state.ansible_facts.services["firewalld.service"].status == 'enabled'
+    - firewalld_service_state.ansible_facts.services["firewalld.service"].state == 'running'
+    - "'installed' in ipquorum_prepare_firewallrpm.results | map(attribute='yumstate') | list"
+
+- name: firewall change | Port opening is not configured - Check Firewalld Service
+  vars:
+    msg: |-
+      ######################################################################
+
+       The Port opening is not configured beacuse your Firewalld service is Disabled or Stopped.
+
+      ######################################################################
+  debug:
+    msg: "{{ msg.split('\n') }}"
+  when:
+    - firewalld_service_state.ansible_facts.services["firewalld.service"].status == 'disabled' or firewalld_service_state.ansible_facts.services["firewalld.service"].state == 'stopped'
+    - "'installed' in ipquorum_prepare_firewallrpm.results | map(attribute='yumstate') | list"

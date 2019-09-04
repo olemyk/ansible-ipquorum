@@ -1,0 +1,95 @@
+---
+
+#
+# Identify Linux Distribution
+#
+- name: config | Identify RedHat distribution
+  set_fact:
+    build_distribution: REDHAT_AS_LINUX
+  when:
+    ansible_distribution == 'CentOS' or
+    ansible_distribution == 'RedHat'
+
+- name: Config  | Check Linux distribution
+  assert:
+    that: build_distribution is defined
+    fail_msg: >-
+      Unsupported Linux distribution {{ ansible_distribution }}!
+      Supported distribution is Centos and RedHat
+
+# Refresh facts to check Selinux status
+
+- name: refresh facts
+  setup:
+    filter: ansible_selinux
+
+# Disabled Selinux
+- name: config | Disable SELinux
+  selinux:
+    state: disabled
+  notify: reboot
+  register: ipquorum_selinux
+  when:
+   - ipquorum_selinux_disable | bool
+   - ansible_selinux.status == "enabled"
+#
+# Gives output from selinux disabled task -
+#
+- name: config | Disable SELinux - Output
+  debug:
+    msg: "{{ ipquorum_selinux.msg }}"
+    verbosity: 2
+  changed_when: false
+  when: ipquorum_selinux.changed
+
+#
+# Gives output from ansible selinux - output
+#
+- name: config | ansible_selinux - Output
+  debug:
+    msg: "{{ ansible_selinux }}"
+    verbosity: 2
+  changed_when: false
+  when: ipquorum_selinux.changed
+
+#
+# Create directory for IP-Quorum service
+#
+- name: config | Create directory IP-Quorum
+  file:
+    path: /opt/IBM/ip-quorum/
+    state: directory
+    mode: '0755'
+
+- name: config | Create directory IP-Quorum log
+  file:
+    path: /opt/IBM/ip-quorum/log
+    state: directory
+    owner: nobody
+    mode: '0755'
+
+#
+# Copy ipquorum.service file from local files
+#
+- name: config | Copy ipquorum.service file from templates
+  template:
+    src: "{{ role_path }}/templates/ipquorum.service"
+    dest: /etc/systemd/system/
+
+#
+# Restart systemd to pick up new service file this new from Ansible 2.8 and above
+#
+- name: config | Restart systemd to pick up new service file (Ansible 2.8 and above)
+  systemd:
+    daemon_reexec: yes
+
+#
+# Enabled the IP-Quorum Service in Systemd but is not starting it.
+#
+- name: config | Enable IP-Quorum Service
+  systemd:
+    name: ipquorum.service
+    state: stopped
+    enabled: yes
+  register: ipquorum_remote_service_enabled
+

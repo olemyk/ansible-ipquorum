@@ -1,0 +1,51 @@
+---
+- import_tasks: install_openjdk.yml
+  tags: ipquorum_install_openjdk
+  when:
+    - ipquorum_install_openjdk_packages is defined
+    - ipquorum_install_javasdk_packages is not defined
+    - ipquorum_install_javaibm_packages is not defined
+
+- import_tasks: install_javaibm.yml
+  tags: ipquorum_install_javaibm
+  when:
+    - ipquorum_install_javaibm_packages is defined
+    - ipquorum_install_javasdk_packages is not defined
+    - ipquorum_install_openjdk_packages is not defined
+
+- import_tasks: install_javasdk.yml
+  tags: ipquorum_install_javasdk
+  when:
+    - ipquorum_install_javasdk_packages is defined
+    - ipquorum_install_javaibm_packages is not defined
+    - ipquorum_install_openjdk_packages is not defined
+
+- import_tasks: config.yml
+  tags: ipquorum_configure_ipquorum
+
+- import_tasks: firewall.yml
+  when: ipquroum_firewall_disable | bool
+  tags:  ipquorum_firewall
+
+- import_tasks: firewall_change.yml
+  when: ipquorum_firewall_config_change | bool
+  tags:  ipquorum_firewall_change
+
+- import_tasks: remote_ipquorum.yml
+  when:
+    - ipquorum_sv_box_one is defined
+  tags: ipquorum_remote_ipquorum
+
+- import_tasks: local_ipquorum.yml
+  when:
+    - ipquorum_local_ipquorum_app_src is defined
+    - ipquorum_sv_box_one is not defined
+  tags: ipquorum_local_ipquorum
+
+- import_tasks: banner_motd.yml
+  when:
+    - ipquorum_banner_motd | bool
+  tags: ipquorum_banner_motd
+
+- import_tasks: finalize.yml
+  tags: ipquorum_finalize

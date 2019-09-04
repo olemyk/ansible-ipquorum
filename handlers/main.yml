@@ -1,0 +1,28 @@
+---
+# handlers file for ansible-ipquorum
+
+
+- name: reboot-manual
+  fail:
+    msg: >-
+      A server reboot is required!
+  listen: reboot
+  when: not ipquorum_reboot_automatic
+
+- name: reboot-automatic
+  shell: sleep 2 && shutdown -r now "Ansible reboot"
+  listen: reboot
+  notify: wait-for-server
+  when: ipquorum_reboot_automatic | bool
+  async: 1
+  poll: 0
+  ignore_errors: true
+
+- name: wait-for-server
+  wait_for:
+    host: "{{ ansible_default_ipv4.address }}"
+    port: 22
+    state: started
+    delay: 45
+    timeout: 300
+  delegate_to: localhost

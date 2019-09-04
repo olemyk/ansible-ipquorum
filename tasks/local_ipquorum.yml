@@ -1,0 +1,30 @@
+---
+#
+# Copy the inn new ip_quorum.jar files from local files folder on Ansible Controller
+#
+- name: local_ipquorum | Copy ip_quorum.jar file from local files (Uploades newer version if available)
+  copy:
+    src: "{{ ipquorum_local_ipquorum_app_src }}"
+    dest: /opt/IBM/ip-quorum/
+  register: ipquorum_config_copy_ipquorum_local
+  ignore_errors: yes
+
+#
+# Starts and Enable the IP-quorum Service.
+#
+- name: local_ipquorum | Start and Enable IP-Quorum Service
+  systemd:
+    name: ipquorum.service
+    state: started
+    enabled: yes
+  register: ipquorum_config_service_enabled
+
+#
+# Restarts the the IP-quorum Service if the ip_quorum.jar is newer on local files folder.
+#
+- name: local_ipquorum | Restart IP-Quorum Service if ip_quorum.jar is replaced
+  systemd:
+    name: ipquorum.service
+    state: restarted
+    enabled: yes
+  when: ipquorum_config_copy_ipquorum_local.changed and ipquorum_config_service_enabled is not changed

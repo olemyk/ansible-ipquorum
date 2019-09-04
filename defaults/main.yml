@@ -1,0 +1,119 @@
+---
+# defaults file for ansible-ipquorum
+
+## Adding a IP-Quorum information banner/motd to the server.
+ipquorum_banner_motd: false
+
+
+##-------- IP-Quorum - metadata --------------------------------------------#
+## IP-Quorum - metadata.
+## -nometdata (Optional) This parameter is used if you do not require metadata that
+## stores configuration data for node recovery operations with the IP quorum application.
+## Remember that with metadata the minimum bandwidth of 2 megabytes per second is for nometadata,
+## with metadata this increases the requirement for network bandwidth to 64MB/s
+# ipquorum_nometadata: '-nometadata'
+
+
+#-------- Local IP-Quorum Fetch
+## Fetch the IP-Quorum.jar app from local source.
+## Default is the files folder in your Ansible Role.
+ipquorum_local_ipquorum_app_src: "{{ role_path }}/files/ip_quorum.jar"
+
+
+##------------Remote IP-Quorum Fetch --------------------------------------#
+## To Generate and Fetch new IP-Quorum App from Spectrum Virtualize Cluster
+## Populate the field with your Spectrum Virtualize information.
+## The UserName needs to have an Administrator Role on the Spectrum Virtualize
+## The password is set to "export" to minimise the security risk.
+#ipquorum_sv_box_one:
+#  username: 'ipquorum'
+#  password: 'superduperpassword'
+#  ip_address: '10.10.10.10'
+
+
+##------------SELinux------------------#
+## Whether or not to disable SELinux
+ipquorum_selinux_disable: true
+
+## Whether or not to automatically reboot nodes after changing selinux
+##- if set to 'false' then only a message is printed. If set to 'true' then nodes are automatically rebooted
+## (dangerous!)
+ipquorum_reboot_automatic: true
+
+## Whether or not to disable Linux firewalld -
+## If you need to keep firewalld active then change this variable to 'false'
+ipquroum_firewall_disable: false
+
+## And then change the variable to 'true' and apply your custom firewall rule
+ipquorum_firewall_config_change: false
+#ipquorum_firewall_config:
+#  port: '1260/tcp'  # default '1260/tcp'
+#  permanent: 'yes'  # default 'yes'
+#  state: 'enabled'  # default 'enabled'
+#  offline: 'yes'    # default 'yes'
+#  zone: 'public'   # default 'omit' = public
+#  immediate: 'yes'  # default 'yes'
+#  #interface: '(omit)' # default 'omit' = wont be included
+
+
+
+##------------ JAVA - OpenJDK ----------------------------#
+
+## Set java_packages if you would like to use a different version:
+## JDK version options include:
+##   - java
+##   - java-1.7.0-openjdk
+##   - java-1.8.0-openjdk
+
+# ipquorum_install_openjdk_packages: java-1.8.0-openjdk
+
+
+
+##------------JAVA IBM -----------------------------------#
+## Install local IBM JAVA from local folder or repo
+## for now we are using IBM JRE BIN  so download the binary with JRE.
+## Download Java: https://developer.ibm.com/javasdk/downloads/sdk8/
+
+## Chose either local or url to copy in the binary to the IP-Quorum Host
+
+## Enter inn the full path for the binary file, including the filename.
+## http://your-webserver/scale/ibm-java-x86_64-jre-8.0-5.40.bin
+
+#ipquorum_install_javaibm_src_url: http://your-webserver/ibm-java-x86_64-jre-8.0-5.40.bin
+
+
+## Chose the path for where the files should be copy inn. Default is place the file into Files folder of role
+ipquorum_install_javaibm_src_local: "{{ role_path }}/files"
+
+## Need to be set on both src local and url
+#ipquorum_install_javaibm_packages: 'ibm-java-x86_64-jre-8.0-5.40.bin'
+
+## Use the Defaults.
+ipquorum_install_javaibm_download_dir: '/opt'
+ipquorum_install_javaibm_install_dir: '/opt/'
+ipquorum_install_javaibm_user_install_dir: '/opt/ibm/java-x86_64-80'
+
+
+#------------JavaSDK/Oracle--------------------------------#
+## Install local JavaSDK from local folder or repo
+## for now we are using Archive packages, so download the package that is archive (tar.gz)
+
+##  Enter inn the fullpath for the binary file. including the filename
+#ipquorum_install_javasdk_src_url: http://your-webserver/jdk-8u221-linux-x64.tar.gz
+
+## Archive should be just the filename part from above
+#ipquorum_install_javasdk_archive_package: 'jdk-8u221-linux-x64.tar.gz'
+
+## javasdk_packages should be the dir the JDK unpacks into
+#ipquorum_install_javasdk_packages: 'jdk1.8.0_221'
+
+
+## Chose the path for where the files should be copy inn. Default is place the file into "Files" folder of the role.
+ipquorum_install_javasdk_src_local: "{{ role_path }}/files"
+
+## Download folder on host (Use the Default)
+ipquorum_install_javasdk_download_dir: '/opt/'
+## Install/Unpack folder for Java
+ipquorum_install_javasdk_install_dir: '/opt/'
+
+

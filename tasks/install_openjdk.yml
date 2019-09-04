@@ -1,0 +1,35 @@
+---
+#
+# Check If Java is already installed
+#
+- name: Install OpenJDK | Verify if Java is already installed and configured.
+  shell: "/usr/bin/java -version 2>&1 | grep version | awk '{print $3}' | sed 's/\"//g'"
+  register: ipquorum_install_java_version
+
+- name: Install OpenJDK | Verify if Java is already installed and configured
+  debug:
+    msg: "{{ ipquorum_install_java_version.stdout }}"
+
+- block:
+  - name: Install OpenJDK | Define Java_packages.
+    set_fact:
+      java_packages: "{{ ipquorum_install_openjdk_packages }}"
+    when: ipquorum_install_openjdk_packages is not defined
+
+  # Installs OpenJDK from Package manager.
+
+  - name: Install OpenJDK | Ensure Java is installed.
+    package:
+      name: "{{ ipquorum_install_openjdk_packages }}"
+      state: present
+    when: ansible_os_family == 'RedHat'
+
+  # Environment setup.
+  - name: Install OpenJDK | Set JAVA_HOME if configured.
+    template:
+      src: java_home.sh.j2
+      dest: /etc/profile.d/java_home.sh
+      mode: 0644
+    when: java_home is defined and java_home
+
+  when: ipquorum_install_java_version.stdout == ""

@@ -1,0 +1,8 @@
+---
+- hosts: ipquorum
+  remote_user: root
+  gather_facts: true
+  vars:
+    - ipquorum_install_openjdk_packages: java-1.8.0-openjdk
+  roles:
+    - ansible-ipquorum

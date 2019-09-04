@@ -1,0 +1,86 @@
+---
+#
+# Check If IBM Java is already installed
+#
+- name: Install Java IBM | Check If IBM Java is already installed
+  shell: "{{ ipquorum_install_javaibm_user_install_dir }}/jre/bin/java -version 2>&1 | grep version | awk '{print $3}' | sed 's/\"//g'"
+  register: ipquorum_javaibm_installed
+
+- name: Install Java IBM | Check Installed IBM Java version - Output
+  debug:
+    msg: "{{ ipquorum_javaibm_installed.stdout }}"
+
+#
+# Check If Java is already installed
+#
+
+- name: Install Java IBM | Check If Java is already installed and configured.
+  shell: "/usr/bin/java -version 2>&1 | grep version | awk '{print $3}' | sed 's/\"//g'"
+  register: ipquorum_java_installed
+
+- name: install Java IBM | Check If Java is already installed and configured. - Output
+  debug:
+    msg: "{{ ipquorum_java_installed.stdout }}"
+
+- block:
+
+  # Copy IBM Java file from local files folder
+  - name: Install IBM Java | Copy IBM Java file from local files
+    copy:
+      src: "{{ ipquorum_install_javaibm_src_local }}/{{ ipquorum_install_javaibm_packages }}"
+      dest: "{{ ipquorum_install_javaibm_download_dir }}"
+      mode: 0755
+    when: ipquorum_install_javaibm_src_local is defined
+
+  # Copy IBM Java properties from local template folder
+  - name: Install IBM Java | Copy IBM Java Properties file from local template folder
+    template:
+      src: javaibm.properties
+      dest: "{{ ipquorum_install_javaibm_download_dir }}"
+      mode: 0755
+
+  # Copy IBM Java installer from URL
+
+  - name: Install IBM Java | Download Java from URL
+    get_url:
+      url: "{{ ipquorum_install_javaibm_src_url }}"
+      dest: "{{ ipquorum_install_javaibm_download_dir }}"
+      mode: 0755
+      validate_certs: no
+    when: ipquorum_install_javaibm_src_url is defined
+
+  # Problem installing the IBM Java if we dident create a export IATEMPDIR to /tmp2
+  - name: Install IBM Java | Create tmp2 folder beacuse of some bullshit
+    file:
+      path: /tmp2
+      state: directory
+      mode: '0775'
+
+  # Install IBM Java from local disk
+
+  - name: Install IBM Java | Install IBM Java
+    shell: '"{{ ipquorum_install_javaibm_install_dir }}{{ ipquorum_install_javaibm_packages }}" -i silent -f /opt/javaibm.properties'
+    become: yes
+    environment:
+      IATEMPDIR: /tmp2
+    register: ipquorum_install_javaibm
+
+  - name: Install IBM Java | Install IBM Java - Output
+    debug:
+      msg: "{{ ipquorum_install_javaibm.stderr }}"
+    #verbosity: 2
+
+  when: ipquorum_javaibm_installed.stdout == ""
+
+# Set installed Java default
+
+- block:
+  - name: Install IBM Java | Make installed Java default
+    command: "{{ item }}"
+    with_items:
+      - update-alternatives --install "/usr/bin/java" "java" "{{ ipquorum_install_javaibm_user_install_dir }}/jre/bin/java" 1
+      - update-alternatives --set "java" "{{ ipquorum_install_javaibm_user_install_dir }}/jre/bin/java"
+    register: ipquorum_install_java_set_default
+    failed_when: ' "" not in ipquorum_install_java_set_default.stdout'
+
+  when: ipquorum_java_installed.stdout == ""

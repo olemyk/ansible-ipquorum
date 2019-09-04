@@ -1,0 +1,55 @@
+---
+#
+#Install sshpass to connect to Spectrum Virtualize Cluster
+#
+- name: remote_ipquorum | install sshpass
+  package:
+    name: sshpass
+    state: present
+  register: ipquorum_install_sshpass
+
+#
+# SSH to the Spectrum Virtualize Node and Generate a new ip_quorum app
+# sshpass without sshkey is not the safest way, So adding the use of ssh-key is in the future plan for this role.
+#
+- name: remote_ipquorum | Generate new IP-Quorum app version on Spectrum Virtualize node
+  command: 'sshpass -e ssh "{{ ipquorum_sv_box_one.username }}"@"{{ ipquorum_sv_box_one.ip_address }}" svctask mkquorumapp "{{ ipquorum_nometadata | default( ) }}" '
+  register: ipquorum_generate_ipquorum_app
+  environment:
+      SSHPASS: "{{ ipquorum_sv_box_one.password }}"
+
+#
+# SCP to the Spectrum Virtualize Node and fetch the a new ip_quorum app
+#
+- name: remote_ipquorum | Fetch new IP-Quorum version on Spectrum Virtualize node
+  shell: 'sshpass -e scp "{{ ipquorum_sv_box_one.username }}"@"{{ ipquorum_sv_box_one.ip_address }}":/dumps/ip_quorum.jar /opt/IBM/ip-quorum/'
+  register: ipquorum_fetch_ipquorum_app
+  environment:
+      SSHPASS: "{{ ipquorum_sv_box_one.password }}"
+
+#
+# Restarts the ipquroum service if new ip_quorum files is fetched.
+#
+- name: remote_ipquorum | Restart IP-Quorum Service if ip_quorum.jar is replaced
+  systemd:
+    name: ipquorum.service
+    state: restarted
+    enabled: yes
+  when: ipquorum_fetch_ipquorum_app.changed
+
+#
+# Check the status of the IP-quorum Serivce and gives output
+#
+- name: remote_ipquorum | Check status of IP-Quorum Service
+  service_facts:
+  register: ipquorum_service_state
+
+- debug:
+    var: ipquorum_service_state.ansible_facts.services["ipquorum.service"].state
+
+- name: remote_ipquorum | Check if IP-quorum have connection to Spectrum Virtualize
+  command: "journalctl _SYSTEMD_UNIT=ipquorum.service -n"
+  register: ipquorum_connection_state
+
+- debug:
+    msg: "{{ ipquorum_connection_state.stdout.split('\n') }}"

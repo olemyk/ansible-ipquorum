@@ -1,0 +1,103 @@
+---
+#
+# Register the status of IP-Quorum Service
+#
+- name: finalize | Check status of IP-Quorum Service
+  service_facts:
+  register: ip_quorum_service_state
+
+#
+# Output the status of IP-Quorum Service.
+#
+- name: finalize | Check status of IP-Quorum Service - Output
+  debug:
+    var: ip_quorum_service_state.ansible_facts.services["ipquorum.service"].state
+    verbosity: 2
+
+#
+# Register the status of IP-Quorum connection from the journalctl
+#
+- name: finalize | Check if IP-quorum have connection to Spectrum Virtualize
+  command: "journalctl _SYSTEMD_UNIT=ipquorum.service -n 4"
+  register: ip_quorum_connection_state
+
+#
+# Output the status of IP-Quorum Service.
+#
+
+- name: finalize | Check if IP-quorum have connection to Spectrum Virtualize - Output
+  debug:
+    msg: "{{ ip_quorum_connection_state.stdout.split('\n') }}"
+
+- block:
+    - name: finalize | NO ip-quorum.jar file is missing in /opt/IBM/ip-quorum/ip_quorum.jar
+      vars:
+        msg: |-
+          ######################################################################
+
+           Configuration and installation of Java failed.
+
+          ######################################################################
+      debug:
+        msg: "{{ msg.split('\n') }}"
+      when:
+        - " 'Failed at step EXEC spawning /usr/bin/java: No such file or directory' in ip_quorum_connection_state.stdout"
+
+    - name: finalize | NO ip-quorum.jar file is missing in /opt/IBM/ip-quorum/ip_quorum.jar
+      vars:
+        msg: |-
+          ######################################################################
+           Configuration is finished installing and configuring IP-Quorum Service
+
+           !! But the ip-quorum.jar file is missing in /opt/IBM/ip-quorum/ip_quorum.jar !!
+
+           Check that the ip-quorum.jar files have been copied inn earlier inn the playbook.
+           Check that the local path for the local-ipquorum is correct and rerun the playbook.
+          ######################################################################
+      debug:
+        msg: "{{ msg.split('\n') }}"
+      when:
+        - " 'Unable to access jarfile /opt/IBM/ip-quorum/ip_quorum.jar' in ip_quorum_connection_state.stdout"
+
+    - name: finalize | NO Connection to Spectrum Virtualice node.
+      vars:
+        msg: |-
+          ######################################################################
+           Configuration is finished installing and configuring IP-Quorum.
+
+           But there is a problem with IP-Quorum connection to Spectrum Virtualize Nodes
+           "Trying to open socket"
+
+           Check that there is network connection between IP-Quorum Node and SV cluster
+           If you have strict firewall rules you have to open up the port 1260/tcp
+          ######################################################################
+      debug:
+        msg: "{{ msg.split('\n') }}"
+      when:
+        - " 'Trying to open socket' in ip_quorum_connection_state.stdout"
+
+    - name: finalize | Configuration is finished installing and configuring IP-Quorum Service
+      vars:
+        msg: |-
+          ######################################################################
+           Configuration is finished installing and configuring IP-Quorum Service
+
+           There is connection from IP-Quorum app to Spectrum Virtualize Nodes.
+           Check also the Spectrum Virtualize - Quorum Status in the GUI.
+
+           The IP Quorum java app background service is named: ipquorum.service
+
+              stop it with  'systemctl start ipquorum'
+              start it with 'systemctl start ipquorum'
+              check it with 'systemctl status ipquorum'
+
+           Logs are located in /opt/IBM/ip-quorum/logs
+
+           ip_quorum.jar file is located in /opt/IBM/ip-quorum/
+           If needed to update the IP-quorum file, rerun the playbook or.
+           Stop the service, replace the ip_quorum.jar file and start the service.
+
+          ######################################################################
+      debug:
+        msg: "{{ msg.split('\n') }}"
+      when: " 'Connected to' in ip_quorum_connection_state.stdout"
