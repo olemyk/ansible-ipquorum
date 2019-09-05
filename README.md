@@ -103,7 +103,7 @@ Example Playbook
         - ipquorum_install_openjdk_packages: java-1.8.0-openjdk
         - ipquorum_nometadata: '-nometadata'
       roles: 
-        - role: ansible-ipquorum
+        - role: olemyk.ansible_ipquorum
 ```
 
 
@@ -127,7 +127,7 @@ Example Playbook
             password: 'superduperpassword'
             ip_address: '10.10.10.10'
       roles: 
-        - role: ansible-ipquorum
+        - role: olemyk.ansible_ipquorum
 ```
 
 **Example 3:**
@@ -156,7 +156,7 @@ Example Playbook
             password: 'superduperpassword'
             ip_address: '10.10.10.10'
       roles: 
-        - role: ansible-ipquorum
+        - role: olemyk.ansible_ipquorum
 ```
 
 
@@ -183,7 +183,7 @@ Example Playbook
         - ipquorum_nometadata: '-nometadata'
         - ipquorum_local_ipquorum_app_src: '/Users/olemyk/Downloads/ip_quorum.jar'
       roles: 
-        - role: ansible-ipquorum
+        - role: olemyk.ansible_ipquorum
 ```
 
 **Example 4:**
@@ -212,7 +212,7 @@ Example Playbook
         - ipquorum_local_ipquorum_app_src: '/Users/olemyk/Downloads/ip_quorum.jar'
       roles: 
       #  - role: ansible-deploy-vms
-         - role: ansible-ipquorum
+         - role: olemyk.ansible_ipquorum
 ```
 
 
@@ -413,7 +413,7 @@ Troubleshooting
 ---------------
 
 
-Please use the [issue tracker](https://github.com/olemyk/ansible-ipquorum/issues) to ask questions, report bugs and request features.
+Please use the [issue tracker](https://github.com/olemyk/olemyk.ansible_ipquorum/issues) to ask questions, report bugs and request features.
 
 
 Copyright and license
