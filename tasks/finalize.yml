@@ -10,6 +10,7 @@
 # Output the status of IP-Quorum Service.
 #
 - name: finalize | Check status of IP-Quorum Service - Output
+  changed_when: false
   debug:
     var: ip_quorum_service_state.ansible_facts.services["ipquorum.service"].state
     verbosity: 2
@@ -18,6 +19,7 @@
 # Register the status of IP-Quorum connection from the journalctl
 #
 - name: finalize | Check if IP-quorum have connection to Spectrum Virtualize
+  changed_when: false
   command: "journalctl _SYSTEMD_UNIT=ipquorum.service -n 4"
   register: ip_quorum_connection_state
 
@@ -25,17 +27,20 @@
 # Output the status of IP-Quorum Service.
 #
 
-- name: finalize | Check if IP-quorum have connection to Spectrum Virtualize - Output
+- name: finalize | Output the status of IP-Quorum Service. - Output
+  changed_when: false
   debug:
     msg: "{{ ip_quorum_connection_state.stdout.split('\n') }}"
 
 - block:
-    - name: finalize | NO ip-quorum.jar file is missing in /opt/IBM/ip-quorum/ip_quorum.jar
+    - name: finalize | Configuration and installation of Java failed
+      changed_when: false
       vars:
         msg: |-
           ######################################################################
 
-           Configuration and installation of Java failed.
+           Configuration and installation of Java failed. (Check earlier Outputs )
+           Check also logs /opt/IBM/ip-quorum/logs and systemctl status ipquorum
 
           ######################################################################
       debug:
@@ -43,7 +48,8 @@
       when:
         - " 'Failed at step EXEC spawning /usr/bin/java: No such file or directory' in ip_quorum_connection_state.stdout"
 
-    - name: finalize | NO ip-quorum.jar file is missing in /opt/IBM/ip-quorum/ip_quorum.jar
+    - name: finalize | ip-quorum.jar file is missing in /opt/IBM/ip-quorum/ip_quorum.jar
+      changed_when: false
       vars:
         msg: |-
           ######################################################################
@@ -60,6 +66,7 @@
         - " 'Unable to access jarfile /opt/IBM/ip-quorum/ip_quorum.jar' in ip_quorum_connection_state.stdout"
 
     - name: finalize | NO Connection to Spectrum Virtualice node.
+      changed_when: false
       vars:
         msg: |-
           ######################################################################
@@ -77,6 +84,7 @@
         - " 'Trying to open socket' in ip_quorum_connection_state.stdout"
 
     - name: finalize | Configuration is finished installing and configuring IP-Quorum Service
+      changed_when: false
       vars:
         msg: |-
           ######################################################################

@@ -7,22 +7,20 @@
     name: sshpass
     state: present
   register: ipquorum_install_sshpass
-
 #
 # SSH to the Spectrum Virtualize Node and Generate a new ip_quorum app
 # sshpass without sshkey is not the safest way, So adding the use of ssh-key is in the future plan for this role.
 #
 - name: remote_ipquorum | Generate new IP-Quorum app version on Spectrum Virtualize node
-  command: 'sshpass -e ssh "{{ ipquorum_sv_box_one.username }}"@"{{ ipquorum_sv_box_one.ip_address }}" svctask mkquorumapp "{{ ipquorum_nometadata | default( ) }}" '
+  command: 'sshpass -e ssh "{{ ipquorum_sv_box_one.username }}"@"{{ ipquorum_sv_box_one.ip_address }}" mkquorumapp "{{ ipquorum_nometadata | default( ) }}" '
   register: ipquorum_generate_ipquorum_app
   environment:
       SSHPASS: "{{ ipquorum_sv_box_one.password }}"
-
 #
 # SCP to the Spectrum Virtualize Node and fetch the a new ip_quorum app
 #
 - name: remote_ipquorum | Fetch new IP-Quorum version on Spectrum Virtualize node
-  shell: 'sshpass -e scp "{{ ipquorum_sv_box_one.username }}"@"{{ ipquorum_sv_box_one.ip_address }}":/dumps/ip_quorum.jar /opt/IBM/ip-quorum/'
+  command: 'sshpass -e scp "{{ ipquorum_sv_box_one.username }}"@"{{ ipquorum_sv_box_one.ip_address }}":/dumps/ip_quorum.jar /opt/IBM/ip-quorum/'
   register: ipquorum_fetch_ipquorum_app
   environment:
       SSHPASS: "{{ ipquorum_sv_box_one.password }}"
@@ -36,7 +34,6 @@
     state: restarted
     enabled: yes
   when: ipquorum_fetch_ipquorum_app.changed
-
 #
 # Check the status of the IP-quorum Serivce and gives output
 #
@@ -44,12 +41,21 @@
   service_facts:
   register: ipquorum_service_state
 
-- debug:
+- name: remote_ipquorum | Check State of ipquorum.service - Output
+  changed_when: false
+  debug:
     var: ipquorum_service_state.ansible_facts.services["ipquorum.service"].state
-
+    verbosity: 2
+#
+# Checks the log of the IP-quorum Serivce and gives output
+#
 - name: remote_ipquorum | Check if IP-quorum have connection to Spectrum Virtualize
   command: "journalctl _SYSTEMD_UNIT=ipquorum.service -n"
+  changed_when: false
   register: ipquorum_connection_state
 
-- debug:
+- name: remote_ipquorum | Check if IP-quorum have connection to Spectrum Virtualize - Output
+  changed_when: false
+  debug:
     msg: "{{ ipquorum_connection_state.stdout.split('\n') }}"
+    verbosity: 2

@@ -1,27 +1,29 @@
 ---
 #
-# Check If JavaSDK is already installed
-#
-- name: Install JavaSDK | Check If java is already installed or not.
-  shell: "{{ ipquorum_install_javasdk_install_dir }}{{ ipquorum_install_javasdk_packages }}/bin/java -version 2>&1 | grep version | awk '{print $3}' | sed 's/\"//g'"
-  register: ipquorum_install_javasdk_version
-
-- name: Install JavaSDK | Installed java version
-  debug:
-    msg: "{{ ipquorum_install_javasdk_version.stdout }}"
-
-#
 # Check If Java is already installed
 #
-- name: install JavaSDK | Check If java is already installed and configured.
-  shell: "/usr/bin/java -version 2>&1 | grep version | awk '{print $3}' | sed 's/\"//g'"
-  register: ipquorum_install_java_version
+- name: Install JavaSDK | Verify if Java is already installed
+  command: which java
+  register: ipquorum_install_java_task_installed
+  changed_when: false
+  failed_when: no
 
-- name: Install JavaSDK | Installed java version
+# ipquorum_install_java_task_installed.rc == 0 : installed
+# ipquorum_install_java_task_installed.rc == 1 : not installed
+
+- name: Install OpenJDK | Verify if Java is already installed - stdout Output
+  changed_when: false
   debug:
-    msg: "{{ ipquorum_install_java_version.stdout }}"
+    msg: "{{ ipquorum_install_java_task_installed.stdout }}"
+    verbosity: 2
 
-- block:
+- name: Install OpenJDK | Verify if Java is already installed - stdout Output
+  changed_when: false
+  debug:
+    msg: "{{ ipquorum_install_java_task_installed.rc }}"
+    verbosity: 2
+
+- block: #when rc=1
   # Copy JavaSDK file from URL
   - name: Install JavaSDK | Download Java from URL
     get_url:
@@ -51,16 +53,12 @@
       dest: "{{ ipquorum_install_javasdk_install_dir }}"
       creates: "{{ ipquorum_install_javasdk_install_dir }}{{ ipquorum_install_javasdk_packages }}"
 
-  when: ipquorum_install_javasdk_version.stdout == ""
+  # Set installed Java default
+  - name: Install JavaSDK | Make installed Java SDK default
+    command: "{{ item }}"
+    with_items:
+      - update-alternatives --install "/usr/bin/java" "java" "{{ ipquorum_install_javasdk_install_dir }}{{ ipquorum_install_javasdk_packages }}/bin/java" 1
+      - update-alternatives --set java "{{ ipquorum_install_javasdk_install_dir }}{{ ipquorum_install_javasdk_packages }}/bin/java"
+    register: ipquorum_install_javasdk_set_default
 
-# Set installed Java default
-- name: Install JavaSDK | Make installed Java SDK default
-  command: "{{ item }}"
-  with_items:
-    - update-alternatives --install "/usr/bin/java" "java" "{{ ipquorum_install_javasdk_install_dir }}{{ ipquorum_install_javasdk_packages }}/bin/java" 1
-    - update-alternatives --set java "{{ ipquorum_install_javasdk_install_dir }}{{ ipquorum_install_javasdk_packages }}/bin/java"
-  register: ipquorum_install_javasdk_set_default
-  failed_when: ' "" not in ipquorum_install_javasdk_set_default.stdout'
-  when: ipquorum_install_java_version.stdout == ""
-
-
+  when: ipquorum_install_java_task_installed.rc == 1

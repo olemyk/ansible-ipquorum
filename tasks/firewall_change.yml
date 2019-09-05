@@ -3,15 +3,14 @@
 # Install prereq RPMs
 #
 - name: firewall change | Install prerequisite RPMs
-  yum:
-    name: yum-utils
-    state: present
+  package:
+     name: yum-utils
+     state: present
   when: ansible_pkg_mgr == 'yum'
 
-
 - name: firewall change | List installed firewall RPMs
-  yum:
-    list: firewalld
+  package:
+     list: firewalld
   register: ipquorum_prepare_firewallrpm
   when:
     - ansible_pkg_mgr == 'yum'
@@ -26,19 +25,19 @@
 #
 # Output the status of firewalld Service.
 #
-- name: finalize change | Check status of firewalld service - Output
+- name: firewall change | Check status of firewalld service - Output
   debug:
     var: firewalld_service_state.ansible_facts.services["firewalld.service"].status
-    #verbosity: 2
+    verbosity: 2
   changed_when: false
 
 #
 # Output the status of firewalld Service.
 #
-- name: finalize change | Check state of firewalld service  - Output
+- name: firewall change | Check state of firewalld service  - Output
   debug:
     var: firewalld_service_state.ansible_facts.services["firewalld.service"].state
-    #verbosity: 2
+    verbosity: 2
   changed_when: false
   when:
     - "'installed' in ipquorum_prepare_firewallrpm.results | map(attribute='yumstate') | list"
@@ -62,6 +61,7 @@
     - "'installed' in ipquorum_prepare_firewallrpm.results | map(attribute='yumstate') | list"
 
 - name: firewall change | Port opening is not configured - Check Firewalld Service
+  changed_when: false
   vars:
     msg: |-
       ######################################################################
@@ -72,5 +72,6 @@
   debug:
     msg: "{{ msg.split('\n') }}"
   when:
-    - firewalld_service_state.ansible_facts.services["firewalld.service"].status == 'disabled' or firewalld_service_state.ansible_facts.services["firewalld.service"].state == 'stopped'
+    - firewalld_service_state.ansible_facts.services["firewalld.service"].status == 'disabled'
+     or firewalld_service_state.ansible_facts.services["firewalld.service"].state == 'stopped'
     - "'installed' in ipquorum_prepare_firewallrpm.results | map(attribute='yumstate') | list"

@@ -3,7 +3,7 @@
 # Install prereq RPMs
 #
 - name: firewall disable | Install prerequisite RPMs
-  yum:
+  package:
     name: yum-utils
     state: present
   when: ansible_pkg_mgr == 'yum'
@@ -12,7 +12,7 @@
 # Disable firewalld
 #
 - name: firewall disable | List installed firewall RPMs
-  yum:
+  package:
     list: firewalld
   register: ipquorum_prepare_firewallrpm
   when:

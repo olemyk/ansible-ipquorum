@@ -1,7 +1,12 @@
 IBM Spectrum Virtualize IP-Quorum Ansible Role
 =========
 
-[![GitHub Issues](https://img.shields.io/github/issues/olemyk/ansible-ipquorum.svg)](https://github.com/olemyk/ansible-ipquorum/issues) [![GitHub Stars](https://img.shields.io/github/stars/olemyk/ansible-ipquorum.svg?label=github%20%E2%98%85)](https://github.com/olemyk/ansible-ipquorum/) [![Role Downloads](https://img.shields.io/ansible/role/d/29538.svg)](https://galaxy.ansible.com/olemyk/ansible-ipquorum) [![License](https://img.shields.io/github/license/olemyk/ansible-ipquorum.svg)](LICENSE)
+[![GitHub Issues](https://img.shields.io/github/issues/olemyk/ansible-ipquorum.svg)](https://github.com/olemyk/ansible-ipquorum/issues) 
+[![GitHub Stars](https://img.shields.io/github/stars/olemyk/ansible-ipquorum.svg?label=github%20%E2%98%85)](https://github.com/olemyk/ansible-ipquorum/) 
+[![Role Downloads](https://img.shields.io/ansible/role/d/29538.svg)](https://galaxy.ansible.com/olemyk/ansible_ipquorum) 
+[![License](https://img.shields.io/github/license/olemyk/ansible-ipquorum.svg)](LICENSE)
+[![Platform](http://img.shields.io/badge/platform-redhat-cc0000.svg?style=flat)](RedHat)
+[![Platform](http://img.shields.io/badge/platform-centos-932279.svg?style=flat)](CentOS)
 
 Ansible role for installing and configuring IP-Quorum Service for Spectrum Virtualize (SAN: SVC, Storwize, v9000, FS9100)
 
@@ -64,7 +69,7 @@ Requirements:
 Installation:
 ------
 
-$ ansible-galaxy install olemyk.ansible.ipquorum
+$ ansible-galaxy install olemyk.ansible_ipquorum
 
 
 
@@ -140,7 +145,7 @@ Example Playbook
       gather_facts: true
       vars:
         - ipquorum_install_javaibm_packages: 'ibm-java-x86_64-jre-8.0-5.40.bin'
-        - ipquorum_install_javaibm_src_url: http://10.33.3.56/scale/ibm-java-x86_64-jre-8.0-5.40.bin
+        - ipquorum_install_javaibm_src_url: 'http://mywebserver/ibm-java-x86_64-jre-8.0-5.40.bin'
         - ipquorum_firewall_config_change: true
         - ipquorum_firewall_config:
             zone: 'work'
@@ -217,13 +222,13 @@ Parameter information:
 -------
 
 
-##### Information banner/motd
+#### Information banner/motd
  Adding a IP-Quorum information banner/motd to the server.
 ```
  ipquorum_banner_motd: false
 ```
 
-#### IP-Quorum - metadata 
+### IP-Quorum - metadata 
 
 - This parameter is used if you do not require metadata that stores configuration data for node recovery operations with the IP quorum application.
 - Remember that with metadata the minimum bandwidth of 2 megabytes per second is for nometadata, with metadata this increases the requirement for network bandwidth to 64MB/s
@@ -232,14 +237,14 @@ Parameter information:
 ipquorum_nometadata: '-nometadata`
 ```
 
-#### Local IP-Quorum Fetch
+### Local IP-Quorum Fetch
 Fetch the IP-Quorum.jar app from local source.
 Default is the files folder in your Ansible Role.
 ```
 ipquorum_local_ipquorum_app_src: "{{ role_path }}/files/ip_quorum.jar"
 ```
 
-#### Remote IP-Quorum Fetch 
+### Remote IP-Quorum Fetch 
 - To a Generate and Fetch a new IP-Quorum App from Spectrum Virtualize Cluster,
 Populate the field with your Spectrum Virtualize information. *user/password/ip*
 - The user needs to have an Administrator Role on the Spectrum Virtualize
@@ -252,26 +257,26 @@ ipquorum_sv_box_one:
   ip_address: '10.10.10.10'
 ````
 
-#### Disabled SELinux
+### Disabled SELinux
 -  Whether or not to disable SELinux
 ````
 ipquorum_selinux_disable: true
 ````
 
-#### Automatically reboot nodes after changing selinux
+### Automatically reboot nodes after changing selinux
 - if set to 'false' then only a message is printed. If set to 'true' then nodes are automatically rebooted
 ````
 ipquorum_reboot_automatic: true
 ````
 
 
-#### Disable Linux firewalld
+### Disable Linux firewalld
 - If you need to keep firewalld active then change this variable to 'false'
 ````
 ipquroum_firewall_disable: false
 ````
 
-##### Custom firewall rule 
+### Custom firewall rule 
  
 - To apply the default 1260 firewall rule to Public zone just change the value to true 
 
@@ -293,10 +298,10 @@ ipquorum_firewall_config:
 ```
 
 
-####  JAVA Install
+JAVA Install:
+-------------
 
-
-##### Java OpenJDK 
+#### Java OpenJDK 
 - Set java_packages if you would like to use a different version:
 JDK version options include:
    - java
@@ -306,7 +311,9 @@ JDK version options include:
 ipquorum_install_openjdk_packages: java-1.8.0-openjdk
 ````
 
-##### JAVA IBM 
+
+
+#### JAVA IBM 
 - Install local IBM JAVA from local folder or url
     - For now we are using IBM JRE BIN  ( Download the binary with JRE.)
     - Download Java: [IBM Java download](https://developer.ibm.com/javasdk/downloads/sdk8/)
@@ -344,7 +351,7 @@ ipquorum_install_javaibm_user_install_dir: '/opt/ibm/java-x86_64-80'
 ```
 
 
-##### JavaSDK/Oracle
+#### JavaSDK/Oracle
 - Install local JavaSDK from local folder or url, for now we are using Archive packages, so download the package that is archive (tar.gz)
 
 - Enter inn the fullpath for the binary file. including the filename

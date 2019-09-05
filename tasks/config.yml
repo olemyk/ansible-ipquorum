@@ -1,5 +1,4 @@
 ---
-
 #
 # Identify Linux Distribution
 #
@@ -10,7 +9,7 @@
     ansible_distribution == 'CentOS' or
     ansible_distribution == 'RedHat'
 
-- name: Config  | Check Linux distribution
+- name: Config | Check Linux distribution
   assert:
     that: build_distribution is defined
     fail_msg: >-
@@ -19,7 +18,7 @@
 
 # Refresh facts to check Selinux status
 
-- name: refresh facts
+- name: config | refresh facts
   setup:
     filter: ansible_selinux
 
@@ -87,9 +86,7 @@
 # Enabled the IP-Quorum Service in Systemd but is not starting it.
 #
 - name: config | Enable IP-Quorum Service
-  systemd:
-    name: ipquorum.service
-    state: stopped
-    enabled: yes
+  service:
+     name: ipquorum.service
+     enabled: yes
   register: ipquorum_remote_service_enabled
-

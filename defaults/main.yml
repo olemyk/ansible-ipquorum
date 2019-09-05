@@ -115,5 +115,3 @@ ipquorum_install_javasdk_src_local: "{{ role_path }}/files"
 ipquorum_install_javasdk_download_dir: '/opt/'
 ## Install/Unpack folder for Java
 ipquorum_install_javasdk_install_dir: '/opt/'
-
-
