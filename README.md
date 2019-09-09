@@ -93,12 +93,22 @@ Example Playbook
 
 **Example 1:** (YUM repo already configured)
 
-- The simplest possible playbook to install IP-Quorum With OpenJDK.
-- When setting `'-nometadata' it will not generate ip-quorum app that stores configuration data for node recovery operations.
-- And the ipquorum.jar files need to be placed into files folder in the ansible role `/ansible-ipquorm/files/ip-quorum.jar
+
+- `ipquorum_install_openjdk_packages: java-1.8.0-openjdk`
+   Installs IP-Quorum with OpenJDK.
+- ` ipquorum_nometadata: '-nometadata' `
+   When set to. '-nometadata'`  it will not generate ip-quorum app that stores configuration data for node recovery operations. (default is with metadata)
+
+Default Options
+- `ipquorum_local_ipquorum_app_src: `
+This copies inn the IP-Quorum APP from local folder on your Control node. (Default is /files in your ansible role).
+- ` ipquorum_reboot_automatic: true `
+Default it will try to disabled the selinux, if that changes the server will reboot.
+
 ```
     - hosts: ipquorum
       gather_facts: true
+      remote_user: root
       vars:
         - ipquorum_install_openjdk_packages: java-1.8.0-openjdk
         - ipquorum_nometadata: '-nometadata'
@@ -109,11 +119,24 @@ Example Playbook
 
 **Example 2:**
 
-- Installs IP-Quorum with OpenJDK.
-- Configures firewall with port 1260/TCP to Public Zone.
-- `ipquorum_banner_motd` Configures Linux MOD/Banner with Information about IP-Quorum Service
-- When `sv_box_one` is defined, it will connect to the SV cluster and Generate new IP-Quorum app file 
- and copy inn new IP-Quorum app directly from SV nodes
+- `ipquorum_install_openjdk_packages: java-1.8.0-openjdk`
+   Installs IP-Quorum with OpenJDK.
+- `ipquorum_firewall_config_change: true`
+    Configures firewall with port 1260/TCP to Public Zone.
+- `ipquorum_banner_motd: true`
+   Configures Linux MOD/Banner with Information about IP-Quorum Service.
+- ` ipquorum_nometadata: '-nometadata' `
+   When set to. '-nometadata'`  it will not generate ip-quorum app that stores configuration data for node recovery operations. (default is with metadata)
+- `ipquorum_sv_box_one `
+Is defined, it will connect to the SV cluster and Generate new IP-Quorum app file, and copy inn new IP-Quorum app directly from SV nodes
+Populate the field with your Spectrum Virtualize information.
+    - `username:` The user needs to have an Administrator Role on the Spectrum Virtualize
+    - `password:` This task uses SSHPASS and the password is set to environment/export to minimise the security risk.
+    - `ip_address:` ip_adress of your Spectrum Virtualize nodes.
+
+Defaults
+- ` ipquorum_reboot_automatic: true `
+Default it will try to disabled the selinux, if that changes the server will reboot.
 ```
     - hosts: ipquorum
       gather_facts: true
@@ -132,14 +155,28 @@ Example Playbook
 
 **Example 3:**
 
-- Installs IP-Quorum with IBM JRE Java.
-- Copies the install bin from URL
-- Configures Firewalld with port 1260/TCP to work Zone.
-- `ipquorum_banner_motd` Configures Linux MOD/Banner with Information about IP-Quorum Service
-- When ipquorum_nometadata: is set to '-nometadata' it wil not stores configuration data for node recovery operations.
-- When `sv_box_one` is defined, it will connect to the SV cluster and Generate new IP-Quorum app file 
-   and copy inn new IP-Quorum app directly from SV nodes
- 
+- `ipquorum_install_javaibm_packages: 'ibm-java-x86_64-jre-8.0-5.40.bin'`
+   Name of bin installer for IBM JAVA JRE.
+-  `ipquorum_install_javaibm_src_url: `
+    Copies the install bin from URL, full path is needed.
+- `ipquorum_firewall_config_change: true`
+    Configures firewall with port 1260/TCP to Work Zone.
+- `ipquorum_firewall_config_change_config: Zone: Work`
+    zone: Work
+- `ipquorum_banner_motd: true`
+   Configures Linux MOD/Banner with Information about IP-Quorum Service.
+- ` ipquorum_nometadata: '-nometadata' `
+   When set to. '-nometadata'`  it will not generate ip-quorum app that stores configuration data for node recovery operations. (default is with metadata)
+- `ipquorum_sv_box_one `
+Is defined, it will connect to the SV cluster and Generate new IP-Quorum app file, and copy inn new IP-Quorum app directly from SV nodes
+Populate the field with your Spectrum Virtualize information.
+    - `username:` The user needs to have an Administrator Role on the Spectrum Virtualize
+    - password:` This task uses SSHPASS and the password is set to environment/export to minimise the security risk.
+    - `ip_address:` ip_adress of your Spectrum Virtualize nodes.
+
+Defaults
+- ` ipquorum_reboot_automatic: true `
+Default it will try to disabled the selinux, if that changes the server will reboot.
 ```
     - hosts: ipquorum
       gather_facts: true
@@ -161,15 +198,27 @@ Example Playbook
 
 
 
-**Example 3:**
+**Example 4:**
 
-- Installs IP-Quorum with Oracle Java.
-- Copies inn the java install packages from URL
-- Disables the Firewalld service
-- ipquorum_banner_motd` Configures Linux MOD/Banner with Information about IP-Quorum Service
-- When `ipquorum_nometadata:` is set to `'-nometadata'` it will not generate ip-quorum app that stores configuration data for node recovery operations.
-- When `sv_box_one` is defined, it will connect to the SV cluster and Generate new IP-Quorum app file 
-  and copy inn new IP-Quorum app directly from SV nodes
+- `ipquorum_install_javasdk_src_local: '/Users/olemyk/Downloads/'`
+   Copies inn the java install packages local folder.
+- `ipquorum_install_javasdk_archive_package: 'jdk-8u221-linux-x64.tar.gz'`
+    Name of the archive file.
+-  `ipquorum_install_javasdk_packages: 'jdk1.8.0_221'`
+    name of the package, this will also be install dir.
+- `ipquroum_firewall_disable: true`
+    Do not disables the firewalld. (Default disables it.).
+- `ipquorum_banner_motd: true`
+   Configures Linux MOD/Banner with Information about IP-Quorum Service.
+- ` ipquorum_nometadata: '-nometadata' `
+   When set to. '-nometadata'`  it will not generate ip-quorum app that stores configuration data for node recovery operations. (default is with metadata)
+- `ipquorum_local_ipquorum_app_src: `
+This copies inn the IP-Quorum APP from local folder on your Control node. (Default is /files in your ansible role).
+
+Default:
+- ` ipquorum_reboot_automatic: true `
+Default it will try to disabled the selinux, if that changes the server will reboot.
+
  
 ```
     - hosts: ipquorum
@@ -184,35 +233,6 @@ Example Playbook
         - ipquorum_local_ipquorum_app_src: '/Users/olemyk/Downloads/ip_quorum.jar'
       roles: 
         - role: olemyk.ansible_ipquorum
-```
-
-**Example 4:**
-
-- Installs IP-Quorum with Oracle Java.
-- Copies inn the java install packages local folder.
-- Disables the Firewalld service
-- ipquorum_banner_motd` Configures Linux MOD/Banner with Information about IP-Quorum Service
-- When ipquorum_nometadata:` is set to `'-nometadata' it will not generate ip-quorum app that stores configuration data for node recovery operations.
-- Copy inn the IP-Quorum APP from local folder. (Default is /files )
-
-
-- There is also other roles that could deploy the VMs from template before.  
-
- 
-```
-    - hosts: ipquorum
-      gather_facts: true
-      vars:
-        - ipquorum_install_javasdk_src_local: '/Users/olemyk/Downloads/'
-        - ipquorum_install_javasdk_archive_package: 'jdk-8u221-linux-x64.tar.gz'
-        - ipquorum_install_javasdk_packages: 'jdk1.8.0_221'
-        - ipquroum_firewall_disable: true
-        - ipquorum_banner_motd: true
-        - ipquorum_nometadata: '-nometadata'
-        - ipquorum_local_ipquorum_app_src: '/Users/olemyk/Downloads/ip_quorum.jar'
-      roles: 
-      #  - role: ansible-deploy-vms
-         - role: olemyk.ansible_ipquorum
 ```
 
 
