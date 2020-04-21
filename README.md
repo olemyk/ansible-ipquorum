@@ -468,4 +468,4 @@ Please use the [issue tracker](https://github.com/olemyk/olemyk.ansible_ipquorum
 Copyright and license
 ---------------------
 
-Copyright 2019 Ole Kristian Myklebust, released under the [MIT license](LICENSE)
+Copyright 2020 Ole Kristian Myklebust, released under the [MIT license](LICENSE)
