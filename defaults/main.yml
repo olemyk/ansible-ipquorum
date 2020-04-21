@@ -30,6 +30,14 @@ ipquorum_local_ipquorum_app_src: "{{ role_path }}/files/ip_quorum.jar"
 #  password: 'superduperpassword'
 #  ip_address: '10.10.10.10'
 
+## sshpass is default checking ssh identity and need to be added to known-hosts. by using stricthostkeycheking=false it will accept automatic the ssh identity.
+ipquorum_stricthostkeychecking: false
+
+##--------IP-Quorum_Service-------------#
+# Name of the ipquorum service, this can be changed to have custom name or several Service running on same VM.
+ipquorum_service_name: ipquorum
+# Work directory for the service, ip-quorum.jar file and logs are located here.
+ipquorum_service_path: /opt/IBM
 
 ##------------SELinux------------------#
 ## Whether or not to disable SELinux
@@ -56,6 +64,13 @@ ipquorum_firewall_config_change: false
 #  #interface: '(omit)' # default 'omit' = wont be included
 
 
+## ------ Repo: EPEL -------------------#
+## When tested the ansible role on Centos8, the sshpass needs epel to be able to install.
+# Disable the configuration of EPEL repo, change this to false.
+ipquorum_epel_configure: true
+epel_repo_url: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ ansible_distribution_major_version }}.noarch.rpm"
+epel_repo_gpg_key_url: "/etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-{{ ansible_distribution_major_version }}"
+epel_repofile_path: "/etc/yum.repos.d/epel.repo"
 
 ##------------ JAVA - OpenJDK ----------------------------#
 
@@ -66,7 +81,6 @@ ipquorum_firewall_config_change: false
 ##   - java-1.8.0-openjdk
 
 # ipquorum_install_openjdk_packages: java-1.8.0-openjdk
-
 
 
 ##------------JAVA IBM -----------------------------------#

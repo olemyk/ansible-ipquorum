@@ -1,0 +1,18 @@
+[Unit]
+Description=IBM IP Quorum
+Documentation=https://www.ibm.com/support/knowledgecenter/ST3FR7_8.3.1/com.ibm.storwize.v7000.831.doc/svc_ipquorumconfig.html
+After=local-fs.target network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory={{ipquorum_service_path}}/{{ipquorum_service_name}}/log
+ExecStart=/usr/bin/java -jar {{ipquorum_service_path}}/{{ipquorum_service_name}}/ip_quorum.jar
+Restart=on-failure
+PrivateTmp=yes
+InaccessibleDirectories=/home /root /var /boot
+ReadOnlyDirectories=/etc /usr
+User=nobody
+Group=nobody
+
+[Install]
+WantedBy=multi-user.target

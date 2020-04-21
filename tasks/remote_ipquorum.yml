@@ -1,18 +1,51 @@
 ---
+## To install SSHPASS on Centos 8, Epel need to be configured.
+- name: remote_ipquorum | Check if EPEL repo is already configured.
+  stat:
+    path: "{{ epel_repofile_path }}"
+  register: epel_repofile_result
+  when: ipquorum_epel_configure | bool
+
+- name: remote_ipquorum | Install EPEL repo.
+  package:
+    name: "{{ epel_repo_url }}"
+    state: present
+  register: result
+  until: result is succeeded
+  retries: 5
+  delay: 10
+  when:
+    - ipquorum_epel_configure | bool
+    - not epel_repofile_result.stat.exists
+
+- name: remote_ipquorum | Import EPEL GPG key.
+  rpm_key:
+    key: "{{ epel_repo_gpg_key_url }}"
+    state: present
+  when:
+    - ipquorum_epel_configure | bool
+    - not epel_repofile_result.stat.exists
+  ignore_errors: "{{ ansible_check_mode }}"
+  notify: yum-clean-metadata
+
+- meta: flush_handlers
 #
-#Install sshpass to connect to Spectrum Virtualize Cluster
+# Install sshpass to connect to Spectrum Virtualize Cluster
 #
 - name: remote_ipquorum | install sshpass
   package:
     name: sshpass
     state: present
-  register: ipquorum_install_sshpass
+  register: sshpass_res
+  retries: 5
+  until: sshpass_res is success
+
 #
 # SSH to the Spectrum Virtualize Node and Generate a new ip_quorum app
 # sshpass without sshkey is not the safest way, So adding the use of ssh-key is in the future plan for this role.
 #
 - name: remote_ipquorum | Generate new IP-Quorum app version on Spectrum Virtualize node
-  command: 'sshpass -e ssh "{{ ipquorum_sv_box_one.username }}"@"{{ ipquorum_sv_box_one.ip_address }}" mkquorumapp "{{ ipquorum_nometadata | default( ) }}" '
+  command: 'sshpass -e ssh -o StrictHostKeyChecking="{{ ipquorum_stricthostkeychecking }}" "{{ ipquorum_sv_box_one.username }}"@"{{ ipquorum_sv_box_one.ip_address }}" mkquorumapp "{{ ipquorum_nometadata | default( ) }}" '
   register: ipquorum_generate_ipquorum_app
   environment:
       SSHPASS: "{{ ipquorum_sv_box_one.password }}"
@@ -20,7 +53,7 @@
 # SCP to the Spectrum Virtualize Node and fetch the a new ip_quorum app
 #
 - name: remote_ipquorum | Fetch new IP-Quorum version on Spectrum Virtualize node
-  command: 'sshpass -e scp "{{ ipquorum_sv_box_one.username }}"@"{{ ipquorum_sv_box_one.ip_address }}":/dumps/ip_quorum.jar /opt/IBM/ip-quorum/'
+  command: 'sshpass -e scp "{{ ipquorum_sv_box_one.username }}"@"{{ ipquorum_sv_box_one.ip_address }}":/dumps/ip_quorum.jar {{ipquorum_service_path}}/{{ ipquorum_service_name }}'
   register: ipquorum_fetch_ipquorum_app
   environment:
       SSHPASS: "{{ ipquorum_sv_box_one.password }}"
@@ -30,7 +63,7 @@
 #
 - name: remote_ipquorum | Restart IP-Quorum Service if ip_quorum.jar is replaced
   systemd:
-    name: ipquorum.service
+    name: "{{ ipquorum_service_name }}.service"
     state: restarted
     enabled: yes
   when: ipquorum_fetch_ipquorum_app.changed
@@ -44,13 +77,13 @@
 - name: remote_ipquorum | Check State of ipquorum.service - Output
   changed_when: false
   debug:
-    var: ipquorum_service_state.ansible_facts.services["ipquorum.service"].state
+    var: ipquorum_service_state.ansible_facts.services["{{ ipquorum_service_name }}.service"].state
     verbosity: 2
 #
 # Checks the log of the IP-quorum Serivce and gives output
 #
 - name: remote_ipquorum | Check if IP-quorum have connection to Spectrum Virtualize
-  command: "journalctl _SYSTEMD_UNIT=ipquorum.service -n"
+  command: "journalctl _SYSTEMD_UNIT={{ ipquorum_service_name }}.service -n"
   changed_when: false
   register: ipquorum_connection_state
 

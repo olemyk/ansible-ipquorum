@@ -3,12 +3,13 @@ galaxy_info:
   description: Installation and configuration of IP-Quorum service for IBM Spectrum Virtualize (SVC, Storwize, V9000, FS91xx )
   company: IBM
   license: MIT
-  min_ansible_version: 2.8
+  min_ansible_version: 2.9
 
   platforms:
    - name: EL
      versions:
       - 7
+      - 8
 
   galaxy_tags:
     - ibm

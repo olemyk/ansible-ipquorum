@@ -3,6 +3,6 @@
 ## Adding a IP-Quorum information banner/motd to the server.
 #
 - name: Banner/ MOTD | Configure Info Banner/MOTD
-  copy:
-    src: "{{ role_path }}/templates/motd"
+  template:
+    src: "{{ role_path }}/templates/motd.j2"
     dest: /etc/motd

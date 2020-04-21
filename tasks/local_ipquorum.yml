@@ -5,7 +5,7 @@
 - name: local ipquorum | Copy ip_quorum.jar file from local files (Uploades newer version if available)
   copy:
     src: "{{ ipquorum_local_ipquorum_app_src }}"
-    dest: /opt/IBM/ip-quorum/
+    dest: "/{{ipquorum_service_path}}/{{ ipquorum_service_name }}/"
   register: ipquorum_config_copy_ipquorum_local
   ignore_errors: yes
 #
@@ -13,7 +13,7 @@
 #
 - name: local ipquorum | Start and Enable IP-Quorum Service
   systemd:
-    name: ipquorum.service
+    name: "{{ ipquorum_service_name }}.service"
     state: started
     enabled: yes
   register: ipquorum_config_service_enabled
@@ -22,7 +22,7 @@
 #
 - name: local ipquorum | Restart IP-Quorum Service if ip_quorum.jar is replaced
   systemd:
-    name: ipquorum.service
+    name: "{{ ipquorum_service_name }}.service"
     state: restarted
     enabled: yes
   when: ipquorum_config_copy_ipquorum_local.changed and ipquorum_config_service_enabled is not changed

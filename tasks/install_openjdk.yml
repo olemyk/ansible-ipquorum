@@ -30,6 +30,9 @@
     package:
       name: "{{ ipquorum_install_openjdk_packages }}"
       state: present
+    register: openjdk_res
+    retries: 5
+    until: openjdk_res is success
     when:
      - ansible_os_family == 'RedHat'
 

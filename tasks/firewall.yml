@@ -6,7 +6,7 @@
   package:
     name: yum-utils
     state: present
-  when: ansible_pkg_mgr == 'yum'
+  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
 
 #
 # Disable firewalld
@@ -15,8 +15,7 @@
   package:
     list: firewalld
   register: ipquorum_prepare_firewallrpm
-  when:
-   - ansible_pkg_mgr == 'yum'
+  when: ansible_pkg_mgr == 'yum' or ansible_pkg_mgr == 'dnf'
 
 - name: firewall disable | Stop and disable firewall
   service:
