@@ -54,8 +54,8 @@ Features
 
 Tested on:
 ----------
- - Works only on Centos and RedHat.
- -  Tested with Root. 
+ - Tested only on Centos, RedHat. Version 7.6 - 8.1
+ - Tested with Root. 
 
 
 Requirements:
@@ -70,6 +70,7 @@ Installation:
 ------
 
 $ ansible-galaxy install olemyk.ansible_ipquorum
+There is also now git tags / versions on commits and functions. Se Release Notes 
 
 
 
@@ -452,7 +453,6 @@ Just over 256 MB is reserved for this purpose on each quorum device.
 Limitations
 -----------
 
-- Only one IP-Quorum Service.
 - No Upgrade of JavaSDK and IBM Java.
 - Only Centos and RedHat OS.
 
