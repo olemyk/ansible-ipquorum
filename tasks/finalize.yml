@@ -1,5 +1,13 @@
 ---
 #
+# Start the the ipquroum service. this is to get the correct status and errors
+#
+- name: finalize | Ensure that IP-Quorum Service is started
+  systemd:
+    name: "{{ ipquorum_service_name }}.service"
+    state: started
+    enabled: yes
+#
 # Register the status of IP-Quorum Service
 #
 - name: finalize | Check status of IP-Quorum Service
@@ -12,16 +20,26 @@
 - name: finalize | Check status of IP-Quorum Service - Output
   changed_when: false
   debug:
-    var: ip_quorum_service_state.ansible_facts.services["ipquorum.service"].state
+    var: ip_quorum_service_state.ansible_facts.services["{{ipquorum_service_name}}.service"].state
     verbosity: 2
-
+  when: ansible_distribution_major_version == '7'
 #
 # Register the status of IP-Quorum connection from the journalctl
 #
 - name: finalize | Check if IP-quorum have connection to Spectrum Virtualize
   changed_when: false
-  command: "journalctl _SYSTEMD_UNIT=ipquorum.service -n 4"
+  command: "journalctl _SYSTEMD_UNIT={{ipquorum_service_name}}.service -n 4"
   register: ip_quorum_connection_state
+  when: ansible_distribution_major_version == '7'
+
+#
+# Register the status of IP-Quorum connection from the journalctl
+#
+- name: finalize | Check if IP-quorum have connection to Spectrum Virtualize - RHEL 8
+  changed_when: false
+  command: "journalctl -u {{ipquorum_service_name}}.service -n 4"
+  register: ip_quorum_connection_state_rhel8
+  when: ansible_distribution_major_version == '8'
 
 #
 # Output the status of IP-Quorum Service.
@@ -31,7 +49,10 @@
   changed_when: false
   debug:
     msg: "{{ ip_quorum_connection_state.stdout.split('\n') }}"
-
+  when: ansible_distribution_major_version == '7'
+#
+# TODO: Create a better error and message output, between RHEL 7 and RHEL 8. Problem is that 'journalctl _SYSTEMD_UNIT=' is not giving the newest logs, this is a differance between version 7 and 8
+#
 - block:
     - name: finalize | Configuration and installation of Java failed
       changed_when: false
@@ -40,7 +61,7 @@
           ######################################################################
 
            Configuration and installation of Java failed. (Check earlier Outputs )
-           Check also logs /opt/IBM/ip-quorum/logs and systemctl status ipquorum
+           Check also logs {{ipquorum_service_path}}/{{ipquorum_service_name}}/logs and systemctl status ipquorum
 
           ######################################################################
       debug:
@@ -48,14 +69,14 @@
       when:
         - " 'Failed at step EXEC spawning /usr/bin/java: No such file or directory' in ip_quorum_connection_state.stdout"
 
-    - name: finalize | ip-quorum.jar file is missing in /opt/IBM/ip-quorum/ip_quorum.jar
+    - name: finalize | ip-quorum.jar file is missing in {{ipquorum_service_path}}/{{ipquorum_service_name}}/ip_quorum.jar
       changed_when: false
       vars:
         msg: |-
           ######################################################################
            Configuration is finished installing and configuring IP-Quorum Service
 
-           !! But the ip-quorum.jar file is missing in /opt/IBM/ip-quorum/ip_quorum.jar !!
+           But ip-quorum.jar file is missing in {{ipquorum_service_path}}/{{ipquorum_service_name}}/ip_quorum.jar !!
 
            Check that the ip-quorum.jar files have been copied inn earlier inn the playbook.
            Check that the local path for the local-ipquorum is correct and rerun the playbook.
@@ -63,7 +84,8 @@
       debug:
         msg: "{{ msg.split('\n') }}"
       when:
-        - " 'Unable to access jarfile /opt/IBM/ip-quorum/ip_quorum.jar' in ip_quorum_connection_state.stdout"
+        - " 'Unable to access jarfile' in ip_quorum_connection_state.stdout"
+        - ansible_distribution_major_version == '7'
 
     - name: finalize | NO Connection to Spectrum Virtualice node.
       changed_when: false
@@ -93,19 +115,88 @@
            There is connection from IP-Quorum app to Spectrum Virtualize Nodes.
            Check also the Spectrum Virtualize - Quorum Status in the GUI.
 
-           The IP Quorum java app background service is named: ipquorum.service
+           The IP Quorum java app background service is named: {{ ipquorum_service_name }}.service
 
-              stop it with  'systemctl start ipquorum'
-              start it with 'systemctl start ipquorum'
-              check it with 'systemctl status ipquorum'
+              stop it with  'systemctl start {{ipquorum_service_name}}'
+              start it with 'systemctl start {{ipquorum_service_name}}'
+              check it with 'systemctl status {{ipquorum_service_name}}'
 
-           Logs are located in /opt/IBM/ip-quorum/logs
+           Logs are located in {{ipquorum_service_path}}/{{ipquorum_service_name}}/logs
 
-           ip_quorum.jar file is located in /opt/IBM/ip-quorum/
+           ip_quorum.jar file is located in {{ipquorum_service_path}}/{{ipquorum_service_name}}/
            If needed to update the IP-quorum file, rerun the playbook or.
            Stop the service, replace the ip_quorum.jar file and start the service.
 
           ######################################################################
       debug:
         msg: "{{ msg.split('\n') }}"
-      when: " 'Connected to' in ip_quorum_connection_state.stdout"
+      when:
+        - " 'Connected to' in ip_quorum_connection_state.stdout"
+        - " 'Trying to open socket' not in ip_quorum_connection_state.stdout "
+  when: ansible_distribution_major_version == '7'
+
+- block:
+    - name: finalize | NO Connection to Spectrum Virtualice node. - RHEL 8
+      changed_when: false
+      vars:
+        msg: |-
+          ######################################################################
+           Configuration is finished installing and configuring IP-Quorum.
+
+           But there is a problem with IP-Quorum connection to Spectrum Virtualize Nodes
+           "Trying to open socket"
+
+           Check that there is network connection between IP-Quorum Node and SV cluster
+           If you have strict firewall rules you have to open up the port 1260/tcp
+          ######################################################################
+      debug:
+        msg: "{{ msg.split('\n') }}"
+      when:
+        - " 'Trying to open socket' in ip_quorum_connection_state_rhel8.stdout"
+
+    - name: finalize | Failed to start IP-Quorum service - RHEL 8
+      changed_when: false
+      vars:
+        msg: |-
+          ######################################################################
+           Configuration is finished installing and configuring IP-Quorum.
+
+           But there is a problem with IP-Quorum Service. it's not starting.
+
+           Log onto the server and check the service with 'systemctl status {{ipquorum_service_name}}'
+           grep also the journal  'journalctl | grep {{ipquorum_service_name}}'
+          ######################################################################
+      debug:
+        msg: "{{ msg.split('\n') }}"
+      when:
+        - " 'Failed to start IBM IP Quorum.' in ip_quorum_connection_state_rhel8.stdout"
+
+    - name: finalize | Configuration is finished installing and configuring IP-Quorum Service - RHEL 8
+      changed_when: false
+      vars:
+        msg: |-
+          ######################################################################
+           Configuration is finished installing and configuring IP-Quorum Service
+
+           There is connection from IP-Quorum app to Spectrum Virtualize Nodes.
+           Check also the Spectrum Virtualize - Quorum Status in the GUI.
+
+           The IP Quorum java app background service is named: {{ ipquorum_service_name }}.service
+
+              stop it with  'systemctl start {{ipquorum_service_name}}'
+              start it with 'systemctl start {{ipquorum_service_name}}'
+              check it with 'systemctl status {{ipquorum_service_name}}'
+
+           Logs are located in {{ipquorum_service_path}}/{{ipquorum_service_name}}/logs
+
+           ip_quorum.jar file is located in {{ipquorum_service_path}}/{{ipquorum_service_name}}/
+           If needed to update the IP-quorum file, rerun the playbook or.
+           Stop the service, replace the ip_quorum.jar file and start the service.
+
+          ######################################################################
+      debug:
+        msg: "{{ msg.split('\n') }}"
+      when:
+        - " 'Connected to' in ip_quorum_connection_state_rhel8.stdout"
+        - " 'Trying to open socket' not in ip_quorum_connection_state_rhel8.stdout "
+  when: ansible_distribution_major_version == '8'

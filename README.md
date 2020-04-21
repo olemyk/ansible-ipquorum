@@ -62,7 +62,7 @@ Requirements:
 ------------
   
 -  When using Java OpenJDK you will need a repo to install `java-1.8.0-openjdk`
--  When using Create new IP-Quorum app file directly from SV node, it will try to install `sshpass` YUM repo is needed for this.
+-  When using Create new IP-Quorum app file directly from SV node, it will try to install `sshpass` YUM repo is needed for this. (epel repo is configure)
 -  When using the firewall change it will check for installed firewall rpm with yum-util.
   
 
@@ -277,6 +277,29 @@ ipquorum_sv_box_one:
   ip_address: '10.10.10.10'
 ````
 
+#### Remote IP-Quroum: SSHPASS and stricthostkeycheking 
+- **stricthostkeycheking** is default checking ssh identity and need to be added to known-hosts. 
+- By using **stricthostkeycheking=false** it will accept automatic the ssh identity.
+
+````
+ipquorum_stricthostkeychecking: no
+````
+
+
+### Customize the IP-Quorum service name.
+- default name for the service is called: **ipquorum.service** this can be changed to have custom name and make is possible to run several Services on same VM/Host.
+- Just change the name and how to fetch the quorum.jar file. and rerun the playbook. 
+
+````  
+- ipquorum_service_name: ipquorum
+````
+
+### Work directory for the IP-Quorum service, 
+- ip-quorum.jar file and logs are located here. 
+```
+ipquorum_service_path: /opt/IBM
+```
+
 ### Disabled SELinux
 -  Whether or not to disable SELinux
 ````
@@ -317,6 +340,12 @@ ipquorum_firewall_config:
   #interface: '(omit)' # default 'omit' = wont be included
 ```
 
+#### YUM Repos: EPEL 
+- To install SSHPASS on Centos8 we need epel. The Role will check if epel is configured allready. 
+- To disable the configuration of EPEL repo, (default on) change this to false.
+````
+ipquorum_epel_configure: true
+````
 
 JAVA Install:
 -------------

@@ -1,0 +1,13 @@
+============================================================================
+The IP Quorum java app background service is named: {{ipquorum_service_name}}.service
+
+  stop it with  'systemctl start {{ipquorum_service_name}}'
+  start it with 'systemctl start {{ipquorum_service_name}}'
+  check it with 'systemctl status {{ipquorum_service_name}}'
+
+Logs are located in {{ipquorum_service_path}}/{{ipquorum_service_name}}/logs
+ip_quorum.jar file is located in {{ipquorum_service_path}}/{{ipquorum_service_name}}/
+
+If needed to update the IP-quorum file, rerun the Ansible playbook or
+Stop the service, replace the ip_quorum.jar file and start the service.
+============================================================================

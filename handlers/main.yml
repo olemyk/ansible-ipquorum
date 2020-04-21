@@ -25,3 +25,8 @@
     delay: 45
     timeout: 300
   delegate_to: localhost
+
+- name: yum-clean-metadata
+  command: yum clean metadata
+  args:
+    warn: false

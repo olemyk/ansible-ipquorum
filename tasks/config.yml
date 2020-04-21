@@ -56,13 +56,13 @@
 #
 - name: config | Create directory IP-Quorum
   file:
-    path: /opt/IBM/ip-quorum/
+    path: "{{ipquorum_service_path}}/{{ipquorum_service_name}}/"
     state: directory
     mode: '0755'
 
 - name: config | Create directory IP-Quorum log
   file:
-    path: /opt/IBM/ip-quorum/log
+    path: "{{ipquorum_service_path}}/{{ipquorum_service_name}}/log"
     state: directory
     owner: nobody
     mode: '0755'
@@ -72,8 +72,8 @@
 #
 - name: config | Copy ipquorum.service file from templates
   template:
-    src: "{{ role_path }}/templates/ipquorum.service"
-    dest: /etc/systemd/system/
+    src: "{{ role_path }}/templates/ipquorum.service.j2"
+    dest: /etc/systemd/system/{{ ipquorum_service_name }}.service
 
 #
 # Restart systemd to pick up new service file this new from Ansible 2.8 and above
@@ -87,6 +87,6 @@
 #
 - name: config | Enable IP-Quorum Service
   service:
-     name: ipquorum.service
+     name: "{{ ipquorum_service_name }}.service"
      enabled: yes
   register: ipquorum_remote_service_enabled
